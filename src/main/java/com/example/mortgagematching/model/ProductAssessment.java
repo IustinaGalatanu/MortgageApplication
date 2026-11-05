@@ -10,12 +10,13 @@ import java.util.List;
         "productId",
         "eligibleProduct",
         "rejectionReasons",
-        "funderAssesments"
+        "funderAssessments"
 })
-public class ProductAssesment {
+public class ProductAssessment {
 
     private String productId;
     private boolean eligibleProduct;
     private List<RejectionReason> rejectionReasons;
-    private List<FunderAssesment> funderAssesments;
+    private List<FunderAssessment> funderAssessments;
 }
+

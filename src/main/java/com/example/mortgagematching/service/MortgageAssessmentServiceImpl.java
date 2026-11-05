@@ -10,14 +10,14 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
-public class MortgageAssessmentServiceImpl implements MortgageAssesmentService {
+public class MortgageAssessmentServiceImpl implements MortgageAssessmentService {
 
     private final ProductCatalog productCatalog;
     private final FunderCatalog funderCatalog;
-    private final ProductAssessmentServiceImpl productAssessmentService;
-    private final FunderAssessmentServiceImpl funderAssessmentService;
+    private final ProductAssessmentService productAssessmentService;
+    private final FunderAssessmentService funderAssessmentService;
 
-    public MortgageAssessmentServiceImpl(ProductCatalog productCatalog, FunderCatalog funderCatalog, ProductAssessmentServiceImpl productAssessmentService, FunderAssessmentServiceImpl funderAssessmentService) {
+    public MortgageAssessmentServiceImpl(ProductCatalog productCatalog, FunderCatalog funderCatalog, ProductAssessmentService productAssessmentService, FunderAssessmentService funderAssessmentService) {
         this.productCatalog = productCatalog;
         this.funderCatalog = funderCatalog;
         this.productAssessmentService = productAssessmentService;
@@ -27,31 +27,31 @@ public class MortgageAssessmentServiceImpl implements MortgageAssesmentService {
     @Override
     public AssessmentResult assess(MortgageApplication application) {
 
-        List<ProductAssesment> productAssessments = new ArrayList<>();
+        List<ProductAssessment> productAssessments = new ArrayList<>();
 
         for (MortgageProduct product : productCatalog.getProductList()) {
-            ProductAssesment productAssesment = productAssessmentService.assess(application, product);
+            ProductAssessment productAssessment = productAssessmentService.assess(application, product);
 
-            if (productAssesment.isEligibleProduct()) {
-                List<FunderAssesment> funderAssessments = new ArrayList<>();
+            if (productAssessment.isEligibleProduct()) {
+                List<FunderAssessment> funderAssessments = new ArrayList<>();
 
                 for (Funder funder : funderCatalog.getFunderList()) {
-                    FunderAssesment funderAssesment = funderAssessmentService.assess(application, product, funder);
-                    funderAssessments.add(funderAssesment);
+                    FunderAssessment funderAssessment = funderAssessmentService.assess(application, product, funder);
+                    funderAssessments.add(funderAssessment);
 
                 }
 
-                funderAssessments.sort(Comparator.comparing(FunderAssesment::getFunderId));
-                productAssesment.setFunderAssesments(funderAssessments);
+                funderAssessments.sort(Comparator.comparing(FunderAssessment::getFunderId));
+                productAssessment.setFunderAssessments(funderAssessments);
             }
-            productAssessments.add(productAssesment);
+            productAssessments.add(productAssessment);
         }
 
-        productAssessments.sort(Comparator.comparing(ProductAssesment::getProductId));
+        productAssessments.sort(Comparator.comparing(ProductAssessment::getProductId));
 
         AssessmentResult result = new AssessmentResult();
         result.setCaseReference(application.getCaseReference());
-        result.setProductAssesments(productAssessments);
+        result.setProductAssessments(productAssessments);
 
         return result;
     }

@@ -4,7 +4,7 @@ import com.example.mortgagematching.dto.MortgageApplicationRequest;
 import com.example.mortgagematching.mapper.MortgageApplicationMapper;
 import com.example.mortgagematching.model.AssessmentResult;
 import com.example.mortgagematching.model.MortgageApplication;
-import com.example.mortgagematching.service.MortgageAssesmentService;
+import com.example.mortgagematching.service.MortgageAssessmentService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/mortgage-assessments")
 public class MortgageController {
 
-    private final MortgageAssesmentService mortgageAssesmentService;
+    private final MortgageAssessmentService mortgageAssessmentService;
     private final MortgageApplicationMapper mapper;
 
-    public MortgageController(MortgageAssesmentService mortgageAssesmentService, MortgageApplicationMapper mapper) {
-        this.mortgageAssesmentService = mortgageAssesmentService;
+    public MortgageController(MortgageAssessmentService mortgageAssessmentService, MortgageApplicationMapper mapper) {
+        this.mortgageAssessmentService = mortgageAssessmentService;
         this.mapper = mapper;
     }
 
@@ -27,6 +27,6 @@ public class MortgageController {
     public AssessmentResult assess(@Valid @RequestBody MortgageApplicationRequest mortgageApplicationRequest) {
 
         MortgageApplication application = mapper.toApplication(mortgageApplicationRequest);
-        return mortgageAssesmentService.assess(application);
+        return mortgageAssessmentService.assess(application);
     }
 }

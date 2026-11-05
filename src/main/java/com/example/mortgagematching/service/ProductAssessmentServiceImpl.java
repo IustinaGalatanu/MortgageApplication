@@ -2,7 +2,7 @@ package com.example.mortgagematching.service;
 
 import com.example.mortgagematching.model.MortgageApplication;
 import com.example.mortgagematching.model.MortgageProduct;
-import com.example.mortgagematching.model.ProductAssesment;
+import com.example.mortgagematching.model.ProductAssessment;
 import com.example.mortgagematching.model.RejectionReason;
 import com.example.mortgagematching.service.rule.ProductRule;
 import org.springframework.stereotype.Service;
@@ -16,12 +16,12 @@ public class ProductAssessmentServiceImpl implements ProductAssessmentService {
 
     List<ProductRule> rules;
 
-    public ProductAssessmentServiceImpl(List<ProductRule> rule) {
-        this.rules = rule;
+    public ProductAssessmentServiceImpl(List<ProductRule> rules) {
+        this.rules = rules;
     }
 
     @Override
-    public ProductAssesment assess(MortgageApplication application, MortgageProduct mortgageProduct) {
+    public ProductAssessment assess(MortgageApplication application, MortgageProduct mortgageProduct) {
 
         List<RejectionReason> reasons = new ArrayList<>();
 
@@ -33,12 +33,12 @@ public class ProductAssessmentServiceImpl implements ProductAssessmentService {
             }
         }
 
-        ProductAssesment assesment = new ProductAssesment();
-        assesment.setProductId(mortgageProduct.getProductId());
-        assesment.setEligibleProduct(reasons.isEmpty());
-        assesment.setRejectionReasons(reasons);
-        assesment.setFunderAssesments(List.of());
+        ProductAssessment assessment = new ProductAssessment();
+        assessment.setProductId(mortgageProduct.getProductId());
+        assessment.setEligibleProduct(reasons.isEmpty());
+        assessment.setRejectionReasons(reasons);
+        assessment.setFunderAssessments(List.of());
 
-        return assesment;
+        return assessment;
     }
 }

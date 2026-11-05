@@ -5,13 +5,13 @@ import com.example.mortgagematching.catalog.FunderCatalog;
 import com.example.mortgagematching.catalog.ProductCatalog;
 import com.example.mortgagematching.model.AssessmentResult;
 import com.example.mortgagematching.model.Funder;
-import com.example.mortgagematching.model.FunderAssesment;
+import com.example.mortgagematching.model.FunderAssessment;
 import com.example.mortgagematching.model.MortgageApplication;
 import com.example.mortgagematching.model.MortgageProduct;
-import com.example.mortgagematching.model.ProductAssesment;
-import com.example.mortgagematching.service.FunderAssessmentServiceImpl;
+import com.example.mortgagematching.model.ProductAssessment;
+import com.example.mortgagematching.service.FunderAssessmentService;
 import com.example.mortgagematching.service.MortgageAssessmentServiceImpl;
-import com.example.mortgagematching.service.ProductAssessmentServiceImpl;
+import com.example.mortgagematching.service.ProductAssessmentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,8 +24,8 @@ class MortgageAssessmentServiceImplTest {
 
     private ProductCatalog productCatalog;
     private FunderCatalog funderCatalog;
-    private ProductAssessmentServiceImpl productAssessmentService;
-    private FunderAssessmentServiceImpl funderAssessmentService;
+    private ProductAssessmentService productAssessmentService;
+    private FunderAssessmentService funderAssessmentService;
     private MortgageAssessmentServiceImpl service;
     private MortgageApplication application;
 
@@ -33,8 +33,8 @@ class MortgageAssessmentServiceImplTest {
     void setUp() {
         productCatalog = mock(ProductCatalog.class);
         funderCatalog = mock(FunderCatalog.class);
-        productAssessmentService = mock(ProductAssessmentServiceImpl.class);
-        funderAssessmentService = mock(FunderAssessmentServiceImpl.class);
+        productAssessmentService = mock(ProductAssessmentService.class);
+        funderAssessmentService = mock(FunderAssessmentService.class);
 
         service = new MortgageAssessmentServiceImpl(
                 productCatalog,
@@ -54,7 +54,7 @@ class MortgageAssessmentServiceImplTest {
         AssessmentResult result = service.assess(application);
 
         assertEquals("CASE-123", result.getCaseReference());
-        assertTrue(result.getProductAssesments().isEmpty());
+        assertTrue(result.getProductAssessments().isEmpty());
 
         verifyNoInteractions(productAssessmentService);
         verifyNoInteractions(funderAssessmentService);
@@ -68,10 +68,10 @@ class MortgageAssessmentServiceImplTest {
         MortgageProduct productA = new MortgageProduct();
         productA.setProductId("HMO_5Y_75");
 
-        ProductAssesment assessmentB =
+        ProductAssessment assessmentB =
                 createProductAssessment("STANDARD_5Y_75", false);
 
-        ProductAssesment assessmentA =
+        ProductAssessment assessmentA =
                 createProductAssessment("HMO_5Y_75", false);
 
         when(productCatalog.getProductList())
@@ -85,13 +85,13 @@ class MortgageAssessmentServiceImplTest {
 
         AssessmentResult result = service.assess(application);
 
-        assertEquals(2, result.getProductAssesments().size());
+        assertEquals(2, result.getProductAssessments().size());
 
         assertEquals("HMO_5Y_75",
-                result.getProductAssesments().get(0).getProductId());
+                result.getProductAssessments().get(0).getProductId());
 
         assertEquals("STANDARD_5Y_75",
-                result.getProductAssesments().get(1).getProductId());
+                result.getProductAssessments().get(1).getProductId());
 
         verifyNoInteractions(funderAssessmentService);
     }
@@ -107,13 +107,13 @@ class MortgageAssessmentServiceImplTest {
         Funder funder = new Funder();
         funder.setFunderId("FUNDER_A");
 
-        ProductAssesment eligibleAssessment =
+        ProductAssessment eligibleAssessment =
                 createProductAssessment("STANDARD_2Y_75", true);
 
-        ProductAssesment ineligibleAssessment =
+        ProductAssessment ineligibleAssessment =
                 createProductAssessment("HMO_5Y_75", false);
 
-        FunderAssesment funderAssessment =
+        FunderAssessment funderAssessment =
                 createFunderAssessment("FUNDER_A", true);
 
         when(productCatalog.getProductList())
@@ -133,9 +133,9 @@ class MortgageAssessmentServiceImplTest {
 
         AssessmentResult result = service.assess(application);
 
-        assertEquals(2, result.getProductAssesments().size());
-        assertEquals(1, eligibleAssessment.getFunderAssesments().size());
-        assertTrue(ineligibleAssessment.getFunderAssesments().isEmpty());
+        assertEquals(2, result.getProductAssessments().size());
+        assertEquals(1, eligibleAssessment.getFunderAssessments().size());
+        assertTrue(ineligibleAssessment.getFunderAssessments().isEmpty());
 
         verify(funderAssessmentService)
                 .assess(application, eligibleProduct, funder);
@@ -155,13 +155,13 @@ class MortgageAssessmentServiceImplTest {
         Funder funderA = new Funder();
         funderA.setFunderId("FUNDER_A");
 
-        ProductAssesment productAssessment =
+        ProductAssessment productAssessment =
                 createProductAssessment("STANDARD_2Y_75", true);
 
-        FunderAssesment assessmentB =
+        FunderAssessment assessmentB =
                 createFunderAssessment("FUNDER_B", true);
 
-        FunderAssesment assessmentA =
+        FunderAssessment assessmentA =
                 createFunderAssessment("FUNDER_A", false);
 
         when(productCatalog.getProductList())
@@ -181,30 +181,30 @@ class MortgageAssessmentServiceImplTest {
 
         AssessmentResult result = service.assess(application);
 
-        List<FunderAssesment> funders = result.getProductAssesments()
-                .get(0).getFunderAssesments();
+        List<FunderAssessment> funders = result.getProductAssessments()
+                .get(0).getFunderAssessments();
 
         assertEquals(2, funders.size());
         assertEquals("FUNDER_A", funders.get(0).getFunderId());
         assertEquals("FUNDER_B", funders.get(1).getFunderId());
     }
 
-    private ProductAssesment createProductAssessment(
+    private ProductAssessment createProductAssessment(
             String productId, boolean eligible) {
 
-        ProductAssesment assessment = new ProductAssesment();
+        ProductAssessment assessment = new ProductAssessment();
         assessment.setProductId(productId);
         assessment.setEligibleProduct(eligible);
         assessment.setRejectionReasons(List.of());
-        assessment.setFunderAssesments(List.of());
+        assessment.setFunderAssessments(List.of());
 
         return assessment;
     }
 
-    private FunderAssesment createFunderAssessment(
+    private FunderAssessment createFunderAssessment(
             String funderId, boolean eligible) {
 
-        FunderAssesment assessment = new FunderAssesment();
+        FunderAssessment assessment = new FunderAssessment();
         assessment.setFunderId(funderId);
         assessment.setEligibleFunder(eligible);
         assessment.setRejectionReasons(List.of());

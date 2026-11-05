@@ -13,12 +13,12 @@ public class FunderAssessmentServiceImpl implements FunderAssessmentService {
 
     List<FunderRule> rules;
 
-    public FunderAssessmentServiceImpl(List<FunderRule> rule) {
-        this.rules = rule;
+    public FunderAssessmentServiceImpl(List<FunderRule> rules) {
+        this.rules = rules;
     }
 
     @Override
-    public FunderAssesment assess(MortgageApplication application, MortgageProduct mortgageProduct, Funder funder) {
+    public FunderAssessment assess(MortgageApplication application, MortgageProduct mortgageProduct, Funder funder) {
 
         List<RejectionReason> reasons = new ArrayList<>();
 
@@ -30,11 +30,11 @@ public class FunderAssessmentServiceImpl implements FunderAssessmentService {
             }
         }
 
-        FunderAssesment assesment = new FunderAssesment();
-        assesment.setFunderId(funder.getFunderId());
-        assesment.setEligibleFunder(reasons.isEmpty());
-        assesment.setRejectionReasons(reasons);
+        FunderAssessment assessment = new FunderAssessment();
+        assessment.setFunderId(funder.getFunderId());
+        assessment.setEligibleFunder(reasons.isEmpty());
+        assessment.setRejectionReasons(reasons);
 
-        return assesment;
+        return assessment;
     }
 }

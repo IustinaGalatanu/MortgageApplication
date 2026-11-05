@@ -2,7 +2,7 @@ package com.example.mortgagematching.service.implementation;
 
 import com.example.mortgagematching.model.MortgageApplication;
 import com.example.mortgagematching.model.MortgageProduct;
-import com.example.mortgagematching.model.ProductAssesment;
+import com.example.mortgagematching.model.ProductAssessment;
 import com.example.mortgagematching.model.RejectionReason;
 import com.example.mortgagematching.service.ProductAssessmentServiceImpl;
 import com.example.mortgagematching.service.rule.ProductRule;
@@ -42,12 +42,12 @@ class ProductAssessmentServiceImplTest {
         when(rule1.evaluate(application, product)).thenReturn(Optional.empty());
         when(rule2.evaluate(application, product)).thenReturn(Optional.empty());
 
-        ProductAssesment result = service.assess(application, product);
+        ProductAssessment result = service.assess(application, product);
 
         assertEquals("STANDARD_2Y_75", result.getProductId());
         assertTrue(result.isEligibleProduct());
         assertTrue(result.getRejectionReasons().isEmpty());
-        assertTrue(result.getFunderAssesments().isEmpty());
+        assertTrue(result.getFunderAssessments().isEmpty());
 
         verify(rule1).evaluate(application, product);
         verify(rule2).evaluate(application, product);
@@ -59,12 +59,12 @@ class ProductAssessmentServiceImplTest {
         when(rule1.evaluate(application, product)).thenReturn(Optional.of(rejectionReason1));
         when(rule2.evaluate(application, product)).thenReturn(Optional.of(rejectionReason2));
 
-        ProductAssesment result = service.assess(application, product);
+        ProductAssessment result = service.assess(application, product);
 
         assertEquals("HMO_5Y_75", result.getProductId());
         assertFalse(result.isEligibleProduct());
         assertEquals(List.of(rejectionReason1, rejectionReason2), result.getRejectionReasons());
-        assertTrue(result.getFunderAssesments().isEmpty());
+        assertTrue(result.getFunderAssessments().isEmpty());
 
         verify(rule1).evaluate(application, product);
         verify(rule2).evaluate(application, product);

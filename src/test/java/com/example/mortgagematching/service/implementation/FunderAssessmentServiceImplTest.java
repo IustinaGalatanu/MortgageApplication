@@ -1,7 +1,7 @@
 package com.example.mortgagematching.service.implementation;
 
 import com.example.mortgagematching.model.Funder;
-import com.example.mortgagematching.model.FunderAssesment;
+import com.example.mortgagematching.model.FunderAssessment;
 import com.example.mortgagematching.model.MortgageApplication;
 import com.example.mortgagematching.model.MortgageProduct;
 import com.example.mortgagematching.model.RejectionReason;
@@ -45,7 +45,7 @@ class FunderAssessmentServiceImplTest {
         when(rule1.evaluate(application, product, funder)).thenReturn(Optional.empty());
         when(rule2.evaluate(application, product, funder)).thenReturn(Optional.empty());
 
-        FunderAssesment result = service.assess(application, product, funder);
+        FunderAssessment result = service.assess(application, product, funder);
 
         assertEquals("FUNDER_A", result.getFunderId());
         assertTrue(result.isEligibleFunder());
@@ -61,7 +61,7 @@ class FunderAssessmentServiceImplTest {
         when(rule1.evaluate(application, product, funder)).thenReturn(Optional.of(rejectionReason1));
         when(rule2.evaluate(application, product, funder)).thenReturn(Optional.of(rejectionReason2));
 
-        FunderAssesment result = service.assess(application, product, funder);
+        FunderAssessment result = service.assess(application, product, funder);
 
         assertEquals("FUNDER_B", result.getFunderId());
         assertFalse(result.isEligibleFunder());

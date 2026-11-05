@@ -8,6 +8,6 @@ import java.util.List;
 public class AssessmentResult {
 
     private String caseReference;
-    private List<ProductAssesment> productAssesments;
+    private List<ProductAssessment> productAssessments;
 
 }

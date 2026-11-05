@@ -27,8 +27,9 @@ Required fields are:
 - Previous landlord experience.
 - Repayment type.
 
-All amounts are in GBP. Loan amount, property value and expected monthly
-rent must be greater than zero.
+All amounts are in GBP. Loan amount and property value must be greater
+than zero. Expected monthly rent can be zero or greater (zero rent is
+accepted as valid input and fails the ICR affordability rule).
 
 Monetary inputs support up to two decimal places. Additional non-zero
 decimal places are rejected rather than rounded.
@@ -204,9 +205,6 @@ The same input and catalogue produce the same result.
 
 Results are ordered by identifier. This order does not indicate
 which product is cheapest or most suitable.
-
-Invalid catalogue configuration is detected at startup and is treated
-as an application error, not an applicant rejection.
 
 ## References
 

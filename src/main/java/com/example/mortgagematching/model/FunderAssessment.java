@@ -11,9 +11,10 @@ import java.util.List;
         "eligibleFunder",
         "rejectionReasons"
 })
-public class FunderAssesment {
+public class FunderAssessment {
 
     private String funderId;
     private boolean eligibleFunder;
     private List<RejectionReason> rejectionReasons;
 }
+

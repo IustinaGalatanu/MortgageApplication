@@ -8,6 +8,9 @@ import com.example.mortgagematching.service.rule.ProductRule;
 
 import java.util.Optional;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MinPropertyValueRule implements ProductRule {
     @Override
     public Optional<RejectionReason> evaluate(MortgageApplication application, MortgageProduct mortgageProduct) {
