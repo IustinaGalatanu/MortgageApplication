@@ -1,45 +1,39 @@
 
 # Mortgage Product and Funder Matching
 
-A Java Spring Boot API that checks a buy-to-let mortgage application against a small catalogue of mortgage products and funders. It returns eligible options and explains why others are rejected.
+A Java Spring Boot API for assessing buy-to-let mortgage applications against a catalogue of mortgage products and institutional funders.
 
-This is an eligibility assessment, not a mortgage offer or final lending decision.
+The service identifies eligible products, matches them with suitable funders and explains why other options are unavailable.
+
+This is an eligibility assessment, not a final mortgage offer or lending approval.
 
 ## Tech Stack
 
-Java 21 · Spring Boot 4 · Maven · Spring Web MVC · Bean Validation · JUnit · Lombok
+Java 21 · Spring Boot 4 · Maven · Spring Web MVC · Bean Validation · Lombok · JUnit
 
 ## Getting Started
 
-**Requirement:** Java 21. No database or external services are needed.
+**Prerequisites:** Java 21. No database or external services are required.
 
-From the project root (the directory containing `pom.xml`):
+From the project root directory:
 
 ```bash
 ./mvnw clean package
 ./mvnw spring-boot:run
 ```
 
-The API runs at `http://localhost:8080` by default.
-
-To run the tests separately:
-
-```bash
-./mvnw test
-```
+The API runs at `http://localhost:8080`.
 
 ## API
 
-**POST /api/mortgage-assessments**
+**POST** `/api/mortgage-assessments`
 
 ### Example Request
-
-This HMO application has a 72% LTV. It qualifies for the HMO product, but only `FUNDER_B` can support it under the sample funder rules.
 
 ```json
 {
   "caseReference": "CASE-001",
-  "loanAmount": 180000,
+  "loanAmount": 150000,
   "propertyValue": 250000,
   "expectedMonthlyRent": 2000,
   "propertyType": "HMO",
@@ -50,33 +44,13 @@ This HMO application has a 72% LTV. It qualifies for the HMO product, but only `
 }
 ```
 
-### Testing the API
+### Example Responses — HTTP 200 OK
 
-Using Postman:
+The following three examples are shortened excerpts from the same assessment response, illustrating different outcomes.
 
-`POST http://localhost:8080/api/mortgage-assessments`
+#### 1. Product Eligible — Funder Found
 
-Alternatively, using curl:
-
-```bash
-curl -i -X POST http://localhost:8080/api/mortgage-assessments \
-  -H "Content-Type: application/json" \
-  -d '{
-    "caseReference": "CASE-001",
-    "loanAmount": 180000,
-    "propertyValue": 250000,
-    "expectedMonthlyRent": 2000,
-    "propertyType": "HMO",
-    "applicantType": "INDIVIDUAL",
-    "propertyLocation": "ENGLAND",
-    "hasLandlordExperience": true,
-    "repaymentType": "INTEREST_ONLY"
-  }'
-```
-
-### Example Eligible Result — HTTP 200
-
-The following is an excerpt showing the eligible product and funder (not the complete API response):
+The HMO product meets all eligibility criteria, and `FUNDER_B` can support it.
 
 ```json
 {
@@ -93,19 +67,50 @@ The following is an excerpt showing the eligible product and funder (not the com
 }
 ```
 
-The full response includes `caseReference` and assessments for all four products.
+#### 2. Product Eligible — Funder Rejected
 
-The other three products are ineligible, and `FUNDER_A` and `FUNDER_C` are rejected for the HMO product, with their reasons included.
+The same HMO product is eligible, but `FUNDER_C` only supports limited company applicants.
 
-A valid request with no eligible products still returns HTTP 200 with rejection reasons.
+```json
+{
+  "funderId": "FUNDER_C",
+  "eligibleFunder": false,
+  "rejectionReasons": [
+    {
+      "rejectionType": "APPLICANT_TYPE_NOT_SUPPORTED",
+      "message": "Applicant type INDIVIDUAL is not supported by this funder."
+    }
+  ]
+}
+```
 
+#### 3. Product Rejected — No Funder Assessment
 
+The standard mortgage product is rejected because the application concerns an HMO property. Funders are therefore not evaluated for this product.
 
-### Invalid Request — HTTP 400
+```json
+{
+  "productId": "STANDARD_2Y_75",
+  "eligibleProduct": false,
+  "rejectionReasons": [
+    {
+      "rejectionType": "PROPERTY_TYPE_NOT_SUPPORTED",
+      "message": "Property type HMO is not supported by this product."
+    }
+  ],
+  "funderAssessments": []
+}
+```
 
-Invalid input is handled by a central `@ControllerAdvice`. Invalid or missing values return HTTP 400, while failing lending criteria is a normal HTTP 200 assessment result.
+The complete response includes `caseReference` and assessments for all configured products and their applicable funders.
 
-**Example 1 — Negative loan amount (`-1000`)**
+A valid application with no eligible products still returns HTTP 200 with the corresponding rejection reasons.
+
+### Invalid Requests — HTTP 400 Bad Request
+
+Invalid requests are handled centrally using `@ControllerAdvice`.
+
+For example, a negative loan amount (`"loanAmount": -1000`) returns:
 
 ```json
 {
@@ -116,48 +121,107 @@ Invalid input is handled by a central `@ControllerAdvice`. Invalid or missing va
 }
 ```
 
-**Example 2 — Invalid property location (`ENGLANDD`)**
+An unsupported enum value, such as `"propertyLocation": "ENGLANDD"`, returns:
 
 ```json
 {
-  "message": "Invalid request body",
-  "fieldErrors": {
-    "propertyLocation": "Invalid value: ENGLANDD"
-  }
+  "message": "Malformed JSON request or unsupported enum value",
+  "fieldErrors": {}
 }
 ```
 
+Invalid input returns HTTP 400, while a valid application that fails lending criteria returns a normal HTTP 200 assessment result.
+
+For example, `NORTHERN_IRELAND` is a valid location but is not supported by the configured products.
+
 ## How It Works
 
-1. **Product assessment:** Every product is checked against property type, location, applicant type, repayment type, experience, loan limits, minimum property value, LTV and ICR. Failed rules produce rejection reasons.
-2. **Funder assessment:** Only eligible products are checked against each funder's supported products, locations, applicant types and LTV limits. A product can be eligible even when no funder supports it.
+I separated the assessment into two stages.
 
-Rules are implemented separately, making individual checks easier to test and change. Products and funders are configured in memory.
+### 1. Product Assessment
 
-## Sample Catalogue
+Every product is evaluated against the application's details, including:
 
-| Product ID | Property | Pay Rate | Max LTV | Experience Required |
-|---|---|---:|---:|---|
-| `STANDARD_2Y_75` | Standard | 5.0% | 75% | No |
-| `STANDARD_5Y_75` | Standard | 5.5% | 75% | No |
-| `HMO_5Y_75` | HMO | 6.0% | 75% | Yes |
-| `MUFB_5Y_70` | MUFB | 6.0% | 70% | Yes |
+- Property type and location
+- Applicant type and repayment type
+- Landlord experience
+- Loan amount and property value
+- Loan-to-Value (LTV)
+- Interest Coverage Ratio (ICR)
 
-- `FUNDER_A`: Standard products, up to 65% LTV.
-- `FUNDER_B`: Standard and HMO products, up to 75% LTV.
-- `FUNDER_C`: HMO and MUFB products, limited companies only, up to 70% LTV.
+A product is eligible only when all applicable rules pass. Otherwise, the service returns the reasons for rejection.
 
-These are fictional lending products and funders.
+### 2. Funder Assessment
 
-LTV and ICR use `BigDecimal` and inclusive thresholds. The two-year ICR stress rate is the greater of 5.5% or the pay rate + 2 percentage points; five-year products use the pay rate.
+Only eligible products proceed to funder assessment.
 
-## Scope and Testing
+Each funder is checked against its supported products, applicant types, locations and maximum LTV.
 
-The service supports interest-only and capital-and-interest applications, but does not calculate repayment schedules. It does not store cases or perform credit, identity, legal or valuation checks.
+A product may be eligible even when no funder can support it.
 
-These decisions and other assumptions are documented in `docs/`.
+The rules are implemented separately, making them easier to test, maintain and extend.
 
-Automated tests cover validation, lending-rule boundaries, product/funder matching, services and exception handling.
+## Sample Products and Funders
+
+The application includes four fictional mortgage products:
+
+| Product ID | Property Type | Pay Rate | Max LTV |
+|---|---|---:|---:|
+| STANDARD_2Y_75 | STANDARD | 5.0% | 75% |
+| STANDARD_5Y_75 | STANDARD | 5.5% | 75% |
+| HMO_5Y_75 | HMO | 6.0% | 75% |
+| MUFB_5Y_70 | MUFB | 6.0% | 70% |
+
+Three funders have different lending criteria:
+
+- **FUNDER_A:** Standard products, up to 65% LTV.
+- **FUNDER_B:** Standard and HMO products, up to 75% LTV.
+- **FUNDER_C:** HMO and MUFB products, limited companies only, up to 70% LTV.
+
+These are representative examples rather than actual Landbay commercial arrangements.
+
+## Lending Calculations
+
+The application uses `BigDecimal` for monetary calculations.
+
+**Loan-to-Value (LTV)**
+
+```text
+LTV = Loan Amount / Property Value
+```
+
+A mortgage must meet the maximum LTV permitted by the product and funder.
+
+**Interest Coverage Ratio (ICR)**
+
+ICR measures whether the rental income covers the assessed mortgage interest.
+
+```text
+Required Annual Rent =
+Loan Amount × Stress Rate × Minimum ICR
+```
+
+The minimum ICR is 145% for individuals and 125% for limited companies.
+
+For two-year fixed products, the stress rate is the higher of 5.5% or the pay rate plus 2 percentage points. Five-year fixed products use the pay rate.
+
+## Assumptions and Scope
+
+Each assessment covers one property and one applicant classification. Both interest-only and capital-and-interest repayment types are supported.
+
+Applications are not stored, and credit checks, identity verification, legal checks and property valuations are outside scope.
+
+Further assumptions and limitations are documented separately.
+
+## Testing
+
+Automated tests cover product and funder rules, lending thresholds, service behaviour, request validation and exception handling.
+
+Run the tests using:
+
+```bash
+./mvnw clean test
+```
 
 ## Documentation
 
